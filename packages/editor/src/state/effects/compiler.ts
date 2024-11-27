@@ -103,7 +103,7 @@ export default async function compiler(state: State, events: EventDispatcher) {
 				state.compiler.buildErrors = [
 					{
 						lineNumber: data.payload?.line?.lineNumber || 1,
-						moduleId: data.payload?.context?.namespace?.moduleName || '',
+						moduleId: data.payload?.context?.moduleName || '',
 						code: data.payload.errorCodadde,
 						message: data.payload.message,
 					},
