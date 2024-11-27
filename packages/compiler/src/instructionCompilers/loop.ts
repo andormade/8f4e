@@ -10,6 +10,8 @@ const loop: InstructionCompiler = function (line, context) {
 		throw getError(ErrorCode.INSTRUCTION_INVALID_OUTSIDE_BLOCK, line, context);
 	}
 
+	const memory = context.addresses.get(context.moduleName) || new Map();
+
 	context.blockStack.push({
 		expectedResultIsInteger: false,
 		hasExpectedResult: false,
@@ -22,7 +24,7 @@ const loop: InstructionCompiler = function (line, context) {
 	return compileSegment(
 		[
 			`local int ${infiniteLoopProtectionCounterName}`,
-			context.namespace.memory.has(loopErrorSignalerName) ? '' : `int ${loopErrorSignalerName} -1`,
+			memory.has(loopErrorSignalerName) ? '' : `int ${loopErrorSignalerName} -1`,
 
 			'push 0',
 			`localSet ${infiniteLoopProtectionCounterName}`,

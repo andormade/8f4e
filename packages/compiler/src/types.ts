@@ -85,18 +85,17 @@ export interface TestModule {
 
 export type Const = { value: number; isInteger: boolean };
 
-export type Consts = Record<string, Const>;
-export interface Namespace {
-	locals: Map<string, { isInteger: boolean; index: number }>;
-	memory: MemoryMap;
-	consts: Consts;
-	moduleName: string | undefined;
-	namespaces: Namespaces;
-}
+export type Consts = Map<string, Const>;
 
-export type Namespaces = Map<string, { consts: Consts }>;
+export type ConstsPerModule = Map<string, Consts>;
+
+export type MemoryMapPerModule = Map<string, MemoryMap>;
+
 export interface CompilationContext {
-	namespace: Namespace;
+	addresses: MemoryMapPerModule;
+	consts: ConstsPerModule;
+	locals: Map<string, { isInteger: boolean; index: number }>;
+	moduleName: string;
 	stack: Stack;
 	blockStack: BlockStack;
 	startingByteAddress: number;
@@ -142,7 +141,7 @@ export interface Error {
 export interface CompileOptions {
 	startingMemoryWordAddress: number;
 	environmentExtensions: {
-		constants: Namespace['consts'];
+		constants: Record<string, Const>;
 		ignoredKeywords: string[];
 	};
 	/** Initial number of memory pages, with a page being 64KiB (65,536 bytes). */

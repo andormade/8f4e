@@ -6,13 +6,16 @@ const use: InstructionCompiler = function (line, context) {
 		throw getError(ErrorCode.EXPECTED_IDENTIFIER, line, context);
 	}
 
-	const namespaceToUse = context.namespace.namespaces.get(line.arguments[0].value);
+	const constsToUse = context.consts.get(line.arguments[0].value);
+	const consts = context.consts.get(context.moduleName) || new Map();
 
-	if (!namespaceToUse) {
+	if (!constsToUse) {
 		throw getError(ErrorCode.UNDECLARED_IDENTIFIER, line, context);
 	}
 
-	context.namespace.consts = { ...context.namespace.consts, ...namespaceToUse.consts };
+	constsToUse.forEach((value, key) => {
+		consts.set(value, key);	
+	});
 
 	return context;
 };

@@ -67,7 +67,7 @@ export function getError(code: ErrorCode, line: AST[number], context?: Compilati
 		case ErrorCode.UNDECLARED_IDENTIFIER:
 			return {
 				code,
-				message: 'Undeclared identifier. (' + code + ')',
+				message: 'Undeclared identifier. (' + code + ')' + JSON.stringify(line),
 				line,
 				context,
 			};

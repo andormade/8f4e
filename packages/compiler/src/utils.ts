@@ -1,5 +1,18 @@
+import { getModuleName } from './compiler';
 import { GLOBAL_ALIGNMENT_BOUNDARY } from './consts';
-import { BLOCK_TYPE, BlockStack, CompilationContext, MemoryMap, StackItem } from './types';
+import { ErrorCode, getError } from './errors';
+import {
+	ArgumentType,
+	AST,
+	BLOCK_TYPE,
+	BlockStack,
+	CompilationContext,
+	Const,
+	Consts,
+	ConstsPerModule,
+	MemoryMap,
+	StackItem,
+} from './types';
 
 export function isMemoryIdentifier(memoryMap: MemoryMap, name: string): boolean {
 	return memoryMap.has(name);
@@ -87,4 +100,42 @@ export function saveByteCode(context: CompilationContext, byteCode: number[]): C
 		context.loopSegmentByteCode.push(...byteCode);
 	}
 	return context;
+}
+
+export function collectConstants(ast: AST[], globalConsts: Consts): ConstsPerModule {
+	return new Map<string, Consts>(
+		ast.map(module => {
+			return [
+				getModuleName(module),
+				new Map<string, Const>(
+					module
+						.filter(({ instruction }) => instruction === 'const')
+						.map(line => {
+							if (!line.arguments[0] || !line.arguments[1]) {
+								throw getError(ErrorCode.MISSING_ARGUMENT, line);
+							}
+
+							if (line.arguments[0].type === ArgumentType.LITERAL) {
+								throw getError(ErrorCode.EXPECTED_IDENTIFIER, line);
+							}
+
+							let value: Const = { value: 0, isInteger: true };
+
+							if (line.arguments[1].type === ArgumentType.IDENTIFIER) {
+								const globalConst = globalConsts.get(line.arguments[1].value);
+								if (globalConst) {
+									value = globalConst;
+								} else {
+									throw getError(ErrorCode.UNDECLARED_IDENTIFIER, line);
+								}
+							} else {
+								value = line.arguments[1];
+							}
+
+							return [line.arguments[0].value, value];
+						})
+				),
+			];
+		})
+	);
 }

@@ -15,9 +15,9 @@ const local: InstructionCompiler = function (line, context) {
 		throw getError(ErrorCode.EXPECTED_IDENTIFIER, line, context);
 	}
 
-	context.namespace.locals.set(line.arguments[1].value, {
+	context.locals.set(line.arguments[1].value, {
 		isInteger: line.arguments[0].value === 'int',
-		index: context.namespace.locals.size,
+		index: context.locals.size,
 	});
 
 	return context;

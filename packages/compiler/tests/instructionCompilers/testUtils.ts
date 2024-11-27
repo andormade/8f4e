@@ -3,13 +3,10 @@ import { AST, BLOCK_TYPE, CompilationContext } from '../../src/types';
 
 export function createMockContext(): CompilationContext {
 	return {
-		namespace: {
-			locals: new Map(),
-			memory: new Map(),
-			consts: {},
-			moduleName: '',
-			namespaces: new Map(),
-		},
+		locals: new Map(),
+		addresses: new Map(),
+		consts: new Map(),
+		moduleName: '',
 		initSegmentByteCode: [],
 		loopSegmentByteCode: [],
 		stack: [],

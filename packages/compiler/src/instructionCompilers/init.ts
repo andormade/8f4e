@@ -7,7 +7,8 @@ const init: InstructionCompiler = function (line, context) {
 		throw getError(ErrorCode.INSTRUCTION_INVALID_OUTSIDE_BLOCK, line, context);
 	}
 
-	const memory = new Map(context.namespace.memory);
+	const memory = context.addresses.get(context.moduleName) || new Map();
+	const consts = context.consts.get(context.moduleName) || new Map();
 
 	let defaultValue = 0;
 
@@ -33,7 +34,7 @@ const init: InstructionCompiler = function (line, context) {
 
 		defaultValue = memoryItem.byteAddress;
 	} else if (line.arguments[1].type === ArgumentType.IDENTIFIER) {
-		const constant = context.namespace.consts[line.arguments[1].value];
+		const constant = consts.get(line.arguments[1].value);
 
 		if (!constant) {
 			throw getError(ErrorCode.UNDECLARED_IDENTIFIER, line, context);

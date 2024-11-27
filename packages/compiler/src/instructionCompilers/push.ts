@@ -29,7 +29,9 @@ const push: InstructionCompiler = function (line, context) {
 		throw getError(ErrorCode.INSTRUCTION_INVALID_OUTSIDE_BLOCK, line, context);
 	}
 
-	const { locals, memory, consts } = context.namespace;
+	const { locals } = context;
+	const memory = context.addresses.get(context.moduleName) || new Map();
+	const consts = context.consts.get(context.moduleName) || new Map();
 
 	if (!line.arguments[0]) {
 		throw getError(ErrorCode.MISSING_ARGUMENT, line, context);

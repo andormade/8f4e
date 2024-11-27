@@ -16,8 +16,6 @@ const _module: InstructionCompiler = function (line, context) {
 		blockType: BLOCK_TYPE.MODULE,
 	});
 
-	context.namespace.moduleName = line.arguments[0].value;
-
 	return context;
 };
 

@@ -19,7 +19,7 @@ const _localSet: InstructionCompiler = function (line, context) {
 	}
 
 	if (line.arguments[0].type === ArgumentType.IDENTIFIER) {
-		const local = context.namespace.locals.get(line.arguments[0].value);
+		const local = context.locals.get(line.arguments[0].value);
 
 		if (!local) {
 			throw getError(ErrorCode.UNDECLARED_IDENTIFIER, line, context);

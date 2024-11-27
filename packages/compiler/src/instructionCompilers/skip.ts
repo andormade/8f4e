@@ -7,7 +7,7 @@ import WASMInstruction from '../wasmUtils/wasmInstruction';
 import { GLOBAL_ALIGNMENT_BOUNDARY } from '../consts';
 
 const skip: InstructionCompiler = function (line, context) {
-	const { consts } = context.namespace;
+	const consts = context.consts.get(context.moduleName) || new Map();
 
 	if (!isInstructionIsInsideAModule(context.blockStack)) {
 		throw getError(ErrorCode.INSTRUCTION_INVALID_OUTSIDE_BLOCK, line, context);
@@ -29,7 +29,7 @@ const skip: InstructionCompiler = function (line, context) {
 		}
 	}
 
-	const memory = context.namespace.memory;
+	const memory = context.addresses.get(context.moduleName) || new Map();
 	const wordAlignedAddress = calculateWordAlignedSizeOfMemory(memory);
 	const byteAddress = context.startingByteAddress + wordAlignedAddress * GLOBAL_ALIGNMENT_BOUNDARY;
 

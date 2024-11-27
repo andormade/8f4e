@@ -1,15 +1,6 @@
 import { createFunction, createLocalDeclaration } from './wasmUtils/sectionHelpers';
 import instructions, { Instruction } from './instructionCompilers';
-import {
-	AST,
-	Argument,
-	ArgumentType,
-	CompilationContext,
-	CompileOptions,
-	CompiledModule,
-	Namespace,
-	Namespaces,
-} from './types';
+import { AST, Argument, ArgumentType, CompilationContext, CompileOptions, CompiledModule } from './types';
 import { ErrorCode, getError } from './errors';
 import { GLOBAL_ALIGNMENT_BOUNDARY } from './consts';
 import Type from './wasmUtils/type';
@@ -87,22 +78,37 @@ export function compileSegment(lines: string[], context: CompilationContext) {
 	return context;
 }
 
+export function getModuleName(ast: AST) {
+	const moduleInstruction = ast.find(line => {
+		return line.instruction === 'module';
+	});
+
+	if (!moduleInstruction) {
+		throw 'Missing module instruction';
+	}
+
+	const argument = moduleInstruction.arguments[0];
+
+	if (argument.type !== ArgumentType.IDENTIFIER) {
+		throw 'Module instruction argument type invalid';
+	}
+
+	return argument.value;
+}
+
 export function compileModule(
 	ast: AST,
-	builtInConsts: Namespace['consts'],
-	namespaces: Namespaces,
+	consts,
+	addresses,
 	startingByteAddress = 0,
 	maxMemorySize: number,
 	index: number
 ): CompiledModule {
 	const context: CompilationContext = {
-		namespace: {
-			namespaces,
-			memory: new Map(),
-			locals: new Map(),
-			consts: { ...builtInConsts },
-			moduleName: undefined,
-		},
+		moduleName: getModuleName(ast),
+		addresses,
+		consts,
+		locals: new Map(),
 		initSegmentByteCode: [],
 		loopSegmentByteCode: [],
 		stack: [],
@@ -115,10 +121,6 @@ export function compileModule(
 		compileLine(line, context);
 	});
 
-	if (!context.namespace.moduleName) {
-		throw getError(ErrorCode.MISSING_MODULE_ID, { lineNumber: 0, instruction: 'module', arguments: [] }, context);
-	}
-
 	if (context.stack.length > 0) {
 		throw getError(
 			ErrorCode.STACK_EXPECTED_ZERO_ELEMENTS,
@@ -128,9 +130,9 @@ export function compileModule(
 	}
 
 	return {
-		id: context.namespace.moduleName,
+		id: context.moduleName,
 		loopFunction: createFunction(
-			Array.from(context.namespace.locals.values()).map(local => {
+			Array.from(context.locals.values()).map(local => {
 				return createLocalDeclaration(local.isInteger ? Type.I32 : Type.F32, 1);
 			}),
 			context.loopSegmentByteCode
@@ -138,8 +140,8 @@ export function compileModule(
 		initFunctionBody: context.initSegmentByteCode,
 		byteAddress: startingByteAddress,
 		wordAlignedAddress: startingByteAddress / GLOBAL_ALIGNMENT_BOUNDARY,
-		memoryMap: context.namespace.memory,
-		wordAlignedSize: calculateWordAlignedSizeOfMemory(context.namespace.memory),
+		memoryMap: context.addresses.get(context.moduleName) || new Map(),
+		wordAlignedSize: calculateWordAlignedSizeOfMemory(context.addresses.get(context.moduleName) || new Map()),
 		ast,
 		index,
 	};
